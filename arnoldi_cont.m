@@ -20,7 +20,7 @@ function [Q,H] = arnoldi_cont(Op,max_dim,Q,H)
         
         beta = norm(w);
 
-        if beta < 1e-12
+        if beta < 1e-15
             fprintf("Breakdown of the Arnoldi method occured at iteration %d\n", i-1)
             Q = Q(:,1:i);
             H = H(1:i,1:i);

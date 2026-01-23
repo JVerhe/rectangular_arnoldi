@@ -30,7 +30,7 @@ function [Q,H] = restarted_arnoldi(Op,b,min_dim,max_dim,restarts)
         hm = U1'*H(end,:)';
         H = [T1; hm'];
 
-        if norm(hm) < 1e-12
+        if norm(hm) < 1e-15
             fprintf("Breakdown of restarted Arnoldi after %d restarts\n",r);
             return;
         end

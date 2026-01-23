@@ -9,14 +9,13 @@ function [Q,H] = arnoldi(Op,b,k)
 
     for i = 1:k
         w = Op(Q(:,i));
-
+        
+        % Double Gramm Schmidt
         for j = 1:i
             h = Q(:,j)'*w;
             w = w - Q(:,j)*h;
             H(j,i) = h;
-        end
 
-        for j = 1:i
             g = Q(:,j)'*w;
             w = w - Q(:,j)*g;
             H(j,i) = H(j,i) + g;
@@ -24,7 +23,7 @@ function [Q,H] = arnoldi(Op,b,k)
         
         beta = norm(w);
 
-        if beta < 1e-12
+        if beta < 1e-15
             fprintf("Breakdown of the Arnoldi method occured at iteration %d\n", i-1)
             Q = Q(:,1:i);
             H = H(1:i,1:i);
