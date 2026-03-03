@@ -99,7 +99,7 @@ end
 
 
 % Compute eigenvalues and plot
-[Q,H,Qhist,Hhist] = restarted_arnoldi(Op,b,min_dim,max_dim,rest,pencil_size);
+[Q,H,Qhist,Hhist] = onesided_iram(Op,b,min_dim,max_dim,rest,pencil_size);
 
 
 LRE = NaN(min_dim,rest);

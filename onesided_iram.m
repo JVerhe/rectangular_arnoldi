@@ -1,4 +1,4 @@
-function [Q,H,Qhist,Hhist] = restarted_arnoldi(Op,b,min_dim,max_dim,restarts,pencil_size)
+function [Q,H,Qhist,Hhist] = onesided_iram(Op,b,min_dim,max_dim,restarts,pencil_size)
     % Creates an Arnoldi factorization A*Qk = Qk+1 * H_
     %
     %   Op: defines matrix vector product
