@@ -1,7 +1,23 @@
-function [V,W,H,K] = twosided_iram(A,v1,w1,min,max,restarts,pencil_size)
-    
+function [V,W,H,K] = twosided_iram(Op1,Op2,v1,w1,min,max,restarts,filt_method,pencil_size)
+    % Computes the 2-sided Arnoldi Factorization of a matrix A, where:
+    % In:
+        % Op1: corresponds to the expression @(v) A*v (builds right Krylov
+        % subspace)
+        % Op2: corresponds to the expression @(v) A'*v (builds left Krylov
+        % subspace)
+        % v1: starting vector right subsp.
+        % w1: starting vector left subsp.
+        % min: minimal restart dimension
+        % max: maximal restart dimension
+        % restarts: number of implicit restarts
+        % pencil_size: array containing the dimensions of matrix A
+    % Out:
+        % Arnoldi factorizations which satisfy:
+        % A*V(:,en-1) = V*H
+        % A'*W(:,end-1) = W*K
+
     m = pencil_size(1); n = pencil_size(2);
-    Op1 = @(v) A*v; Op2 = @(v) A'*v;
+
     [V,H] = arnoldi(Op1,v1,min);
     [W,K] = arnoldi(Op2,w1,min);
 
@@ -10,9 +26,29 @@ function [V,W,H,K] = twosided_iram(A,v1,w1,min,max,restarts,pencil_size)
         [V,H] = arnoldi_cont(Op1,max,V,H);
         [W,K] = arnoldi_cont(Op2,max,W,K);
 
-        ritz = eig(H(1:max,1:max));
-        [~, idx] = sort(abs(ritz), 'ascend');  % Unwanted eigenvalues
-        shifts = ritz(idx(1:(max - min)));
+        if filt_method == 0 % Ritz value radius filtering
+
+            ritz = eig(H(1:max,1:max));
+            [~, idx] = sort(abs(ritz), 'ascend');  % Unwanted eigenvalues
+            shifts = ritz(idx(1:(max - min)));
+
+        elseif filt_method == 1 % Norm residue filtering
+
+            Vr = V(:,1:end-1); Wr = W(:,1:end-1);
+            [rev, rritz] = eig(H(1:max,1:max));
+            [lev, lritz] = eig(K(1:max,1:max));
+    
+            Rev = Vr*rev;
+            Lev = Wr*lev;
+            
+            rres = vecnorm(Rev(n+1:end,:));
+            lres = vecnorm(Lev(m+1:end,:));
+    
+            [~,idx] = sort(abs(lres) + abs(rres)); 
+            ritz = (rritz(idx) + abs(lritz(idx)))/2;
+            shifts = ritz(min+1:end);
+
+        end
         
         vres = V(:, max+1);
         h_m = H(max+1, max);

@@ -8,6 +8,7 @@ sigma = -0.5; % shift
 rest = 8; % number of restarts
 min_dim = 6; % #approx. eigenvalues
 max_dim = 2*min_dim; % restart threshold
+filt_method = 0;
 pencil_type = 3; % 0: regular, 1: singular, 2: singular bordered
 
 if pencil_type == 0 % Regular pencil
@@ -99,7 +100,7 @@ end
 
 
 % Compute eigenvalues and plot
-[Q,H,Qhist,Hhist] = onesided_iram(Op,b,min_dim,max_dim,rest,pencil_size);
+[Q,H,Qhist,Hhist] = onesided_iram(Op,b,min_dim,max_dim,rest,filt_method,pencil_size);
 
 
 LRE = NaN(min_dim,rest);
