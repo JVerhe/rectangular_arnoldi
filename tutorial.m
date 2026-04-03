@@ -35,6 +35,7 @@ scatter(real(eigs1),imag(eigs1),'LineWidth',1);
     axis on; grid on; axis square;
 
     exportgraphics(f0,"arnoldi_ex_0.pdf");
+   
 
 for k = 4:4:16
     [~,H] = arnoldi(Op,b,k);

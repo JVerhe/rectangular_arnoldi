@@ -1,5 +1,5 @@
-function res = residual_error(A,B,pencil_size,V,D)
-    m = pencil_size(1); n = pencil_size(2);
+function res = residual_error(A,B,V,D)
+    m = size(A,1); n = size(A,2);
 
     if m ~= n
         A = A(:,1:n);
