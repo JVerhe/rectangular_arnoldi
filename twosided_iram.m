@@ -15,7 +15,6 @@ function [V,W,H,K] = twosided_iram(A,B,pencil_size,sigma,v1,w1,min,max,restarts,
         % Arnoldi factorizations which satisfy:
         % A*V(:,en-1) = V*H
         % A'*W(:,end-1) = W*K
-
     m = pencil_size(1); n = pencil_size(2);
     
     [L1,U1,P1] = lu(A-sigma*B);
@@ -25,12 +24,20 @@ function [V,W,H,K] = twosided_iram(A,B,pencil_size,sigma,v1,w1,min,max,restarts,
 
     [V,H] = arnoldi(Op1,v1,min);
     [W,K] = arnoldi(Op2,w1,min);
-    
+
+    if size(H,1) == size(H,2) || size(K,1) == size(K,2)
+        return
+    end
+
     % Infinite polynomial shift
-    if filt_method == 1 || filt_method == 3
+    if filt_method == 2 || filt_method == 4
 
         [V,H] = arnoldi_cont(Op1,max,V,H);
         [W,K] = arnoldi_cont(Op2,max,W,K);
+
+        if size(H,1) == size(H,2) || size(K,1) == size(K,2)
+            return
+        end
         
         vres = V(:, max+1);
         h_m = H(max+1, max);
@@ -74,27 +81,31 @@ function [V,W,H,K] = twosided_iram(A,B,pencil_size,sigma,v1,w1,min,max,restarts,
         K(min+1, min) = beta_w;
 
     end
-    
 
 
     for r = 1:restarts
         
         [V,H] = arnoldi_cont(Op1,max,V,H);
         [W,K] = arnoldi_cont(Op2,max,W,K);
+
+        if size(H,1) == size(H,2) || size(K,1) == size(K,2)
+            return
+        end 
         
-        
-        if filt_method == 0 || filt_method == 1 % Ritz value radius filtering
+        if filt_method == 1 || filt_method == 2 % Ritz value radius filtering
 
             Vr = V(:,1:end-1); Wr = W(:,1:end-1);
-            [R,ritz,L] = eig(Wr'*A*Vr-sigma*Wr'*B*Vr);
-            [~, idx] = sort(abs(ritz), 'ascend');  % Unwanted eigenvalues
+            [~,ritz,~] = eig(Wr'*A*Vr-sigma*Wr'*B*Vr);
+            ritz = diag(ritz);
+            [~, idx] = sort(abs(ritz));  % Unwanted eigenvalues
             shifts = ritz(idx(1:(max - min)));
 
             % ritz = eig(H(1:max,1:max));
+            % ritz = diag(ritz)
             % [~, idx] = sort(abs(ritz), 'ascend');  % Unwanted eigenvalues
             % shifts = ritz(idx(1:(max - min)));
 
-        elseif filt_method == 2 || filt_method == 3 % Norm residue filtering
+        elseif filt_method == 3 || filt_method == 4 % Norm residue filtering
 
             Vr = V(:,1:end-1); Wr = W(:,1:end-1);
             [R,ritz,L] = eig(Wr'*A*Vr,Wr'*B*Vr);
@@ -110,7 +121,6 @@ function [V,W,H,K] = twosided_iram(A,B,pencil_size,sigma,v1,w1,min,max,restarts,
             shifts = ritz(min+1:end);
 
         end 
-
 
         vres = V(:, max+1);
         h_m = H(max+1, max);
@@ -153,5 +163,6 @@ function [V,W,H,K] = twosided_iram(A,B,pencil_size,sigma,v1,w1,min,max,restarts,
         
         K = K(1:min+1, 1:min);
         K(min+1, min) = beta_w;
+
     end
 end

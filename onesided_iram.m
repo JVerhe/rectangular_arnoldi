@@ -12,9 +12,17 @@ function [Q,H,Qhist,Hhist] = onesided_iram(Op,b,min_dim,max_dim,restarts,filt_me
 
     [Q,H] = arnoldi(Op,b,min_dim);
 
+    if size(H,1) == size(H,2)
+        return
+    end 
+
     for r = 1:restarts
         
         [Q,H] = arnoldi_cont(Op,max_dim,Q,H);
+
+        if size(H,1) == size(H,2)
+            return
+        end 
 
         Qm = Q(:,1:max_dim);
         qres = Q(:,end);

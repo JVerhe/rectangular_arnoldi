@@ -1,5 +1,5 @@
-function res = residual_error(A,B,V,D)
-    m = size(A,1); n = size(A,2);
+function res = residual_error(A,B,pencil_size,V,D)
+    m = pencil_size(1); n = pencil_size(2);
 
     if m ~= n
         A = A(:,1:n);
@@ -19,7 +19,7 @@ function res = residual_error(A,B,V,D)
         res = NaN(size(V,2),1);
         for i = 1:size(V,2)
             lam = D(i);
-            x = V(1:n,i);
+            x = V(1:m,i);
             o = V(m+1:end,i);
     
             res(i) = (norm(A*x-lam*B*x))/ ((norm(A,"fro") + abs(lam)*norm(B,"fro")) * norm(x)) + norm(o);
