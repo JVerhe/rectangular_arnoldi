@@ -9,7 +9,7 @@ rest = 8; % number of restarts
 min_dim = 6; % #approx. eigenvalues
 max_dim = 2*min_dim; % restart threshold
 filt_method = 0;
-pencil_type = 3; % 0: regular, 1: singular, 2: singular bordered
+pencil_type = 2;
 
 if pencil_type == 0 % Regular pencil
     A = randn(m,m);
@@ -43,37 +43,7 @@ elseif pencil_type == 1 % Singular pencil with orthogonal transformation
     
     qz_eig = eig(A,B);
 
-
-elseif pencil_type == 2 % Singular bordered pencil
-    
-    num_eigs = floor(0.4*n); % for the singular pencil
-    A = zeros(m,n);
-    A(1:num_eigs,1:num_eigs) = diag(2*rand(num_eigs,1)-1);
-
-    B = zeros(m,n);
-    B(1:num_eigs,1:num_eigs) = eye(num_eigs);
-    exact_eigval = diag(A)./diag(B);
-
-    % Transform so the problem is not trivial
-    [Q,~] = qr(randn(m,m));
-    A = Q'*A; 
-    B = Q'*B;
-
-    th = 1e-12;
-    S = A-sigma*B;
-    alpha = norm(S(:),inf);
-    [L,U,P,C,D,~,~]=LU_border_partial(S,th,alpha);
-    
-    Ap = [A , D ; C', zeros(size(C,2),size(D,2))] ;
-    Bp = [B , zeros(size(D,1),size(D,2)) ; zeros(size(C,2),size(C,1)), zeros(size(C,2),size(D,2))] ;
-
-    Op = @(x) U\(L\(P*x)) ;
-    b = randn(size(Ap,2),1);
-
-    [Aqz, Bqz] = make_pencil_square(A,B);
-    qz_eig = eig(Aqz,Bqz);
-
-elseif pencil_type == 3
+elseif pencil_type == 2
     
     A = zeros(m,n);
     A(1:n,1:n) = diag(2*rand(n,1)-1);
