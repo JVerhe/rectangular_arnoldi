@@ -9,7 +9,7 @@ rest = 8; % number of restarts
 min_dim = 6; % #approx. eigenvalues
 max_dim = 2*min_dim; % restart threshold
 filt_method = 0;
-pencil_type = 2;
+pencil_type = 1;
 
 if pencil_type == 0 % Regular pencil
     A = randn(m,m);
@@ -23,27 +23,7 @@ if pencil_type == 0 % Regular pencil
     exact_eigval = eig(A,B);
     qz_eig = exact_eigval;
 
-elseif pencil_type == 1 % Singular pencil with orthogonal transformation
-    
-    num_eigs = floor(0.4*n); % for the singular pencil
-    A = zeros(m,n);
-    A(1:num_eigs,1:num_eigs) = diag(2*rand(num_eigs,1)-1);
-
-    B = zeros(m,n);
-    B(1:num_eigs,1:num_eigs) = eye(num_eigs);
-    exact_eigval = diag(A)./diag(B);
-
-    [Q1,~] = qr(randn(n,n));
-    [~,R2] = qr(randn(m,n));
-    A = R2'*A*Q1; B = R2'*B*Q1;
-
-    b = randn(n,1);
-    [L,U,P] = lu(A-sigma*B);
-    Op = @(v) U\(L\(P*B*v));
-    
-    qz_eig = eig(A,B);
-
-elseif pencil_type == 2
+elseif pencil_type == 1 % Singular Pencils
     
     A = zeros(m,n);
     A(1:n,1:n) = diag(2*rand(n,1)-1);
@@ -53,7 +33,7 @@ elseif pencil_type == 2
     exact_eigval = diag(A)./diag(B);
 
     [Q1,~] = qr(randn(n,n));
-    A = A*Q1; B = B*Q1;
+    % A = A*Q1; B = B*Q1;
     
     EA = randn(m,m-n);
     EB = zeros(m,m-n);
@@ -76,8 +56,15 @@ end
 LRE = NaN(min_dim,rest);
 RES = NaN(min_dim,rest);
 LAM = NaN(min_dim,rest);
-for r = 1:rest  
-    [V, ritzval] = eig(Hhist(1:min_dim,1:min_dim,r));
+for r = 1:rest
+    
+    Hr = Hhist(1:min_dim,1:min_dim,r);
+    if norm(Hr(end,:)) < 1e-15
+        break
+    end
+
+    [V, ritzval] = eig(Hr);
+
     V = Qhist(:,1:end-1,r) * V;
     
     [iram_eig, idx] = sort((1./diag(ritzval)) + sigma);
@@ -90,8 +77,10 @@ for r = 1:rest
 end
 
 figure
-for i = 1:min_dim
-    plot(LRE(i,:))
+for i = 1:size(LRE,1)
+    x = LRE(i,:);
+    idx = isfinite(x);
+    plot(find(idx), x(idx))
     hold on;
 end
 xlim([1 rest]); ylim([0 17]);
@@ -103,8 +92,10 @@ axis on; grid on;
 hold off;
 
 figure
-for i = 1:min_dim
-    semilogy(RES(i,:))
+for i = 1:size(RES,1)
+    x = RES(i,:);
+    idx = isfinite(x);
+    semilogy(find(idx), x(idx))
     hold on;
 end
 xlim([1 rest]);
@@ -116,8 +107,10 @@ axis on; grid on;
 hold off;
 
 figure
-for i = 1:min_dim
-    plot(LAM(i,:))
+for i = 1:size(LAM,1)
+    x = LAM(i,:);
+    idx = isfinite(x);
+    plot(find(idx), x(idx))
     hold on;
 end
 xlim([1 rest]);
@@ -131,9 +124,9 @@ hold off;
 figure
 tiledlayout(1,2)
 nexttile
-heatmap(diag(iram_eig));
+heatmap(diag(real(iram_eig)));
 nexttile
-heatmap(V);
+heatmap(real(V));
 
 figure
 str = sprintf("iram %d restarts",rest);
